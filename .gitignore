@@ -44,3 +44,6 @@ data/processed/
 # MLflow local store
 mlruns/
 mlflow.db
+
+# Generated prediction outputs
+predictions.csv

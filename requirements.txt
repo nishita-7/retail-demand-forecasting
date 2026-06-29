@@ -8,3 +8,5 @@ statsmodels
 seaborn
 ipykernel
 mlflow
+python-dotenv
+streamlit

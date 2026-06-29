@@ -2,6 +2,10 @@
 
 import json
 from pathlib import Path
+import os
+
+from dotenv import load_dotenv
+load_dotenv() 
 
 import joblib
 import mlflow
@@ -62,11 +66,13 @@ def main(params_path: str = "params.yaml") -> None:
             tree_method="hist", n_jobs=-1,
         ),
     }
-
-    # Sqlite tracking store -> enables the Model Registry locally.
-    # To push to DagsHub instead, set MLFLOW_TRACKING_URI to your DagsHub MLflow URL.
-    mlflow.set_tracking_uri("sqlite:///mlflow.db")
-    mlflow.set_experiment("rossmann-demand-forecasting")
+    
+    # Use DagsHub if its tracking URI is set (via env vars), else fall back to local sqlite.
+    if os.environ.get("MLFLOW_TRACKING_URI"):
+        pass 
+    else:
+        mlflow.set_tracking_uri("sqlite:///mlflow.db")
+        mlflow.set_experiment("rossmann-demand-forecasting")
 
     runs = []
     for name, model in candidates.items():
@@ -78,8 +84,11 @@ def main(params_path: str = "params.yaml") -> None:
             mlflow.log_params(model.get_params())
             mlflow.log_metrics(mets)
 
-            log_model = mlflow.xgboost.log_model if name == "xgboost" else mlflow.sklearn.log_model
-            log_model(model, artifact_path="model")
+            log_model_fn = mlflow.xgboost.log_model if name == "xgboost" else mlflow.sklearn.log_model
+            info = log_model_fn(model, artifact_path="model")  
+
+            runs.append({"name": name, "run_id": run.info.run_id,
+                         "model_uri": info.model_uri, **mets})
 
             runs.append({"name": name, "run_id": run.info.run_id, **mets})
             print(f"{name:>18}:  MAE EUR {mets['mae']:,.0f} | RMSE EUR {mets['rmse']:,.0f} | MAPE {mets['mape']:.1f}%")
@@ -88,21 +97,22 @@ def main(params_path: str = "params.yaml") -> None:
     best = min(runs, key=lambda r: r["mape"])
     print(f"\nbest model: {best['name']} (MAPE {best['mape']:.1f}%)")
 
-    # promote the winning run's model into the registry (this version's metrics are the ones above)
-    mv = mlflow.register_model(f"runs:/{best['run_id']}/model", REGISTERED_NAME)
-    print(f"registered '{REGISTERED_NAME}' version {mv.version}")
-
-    # retrain the winner on ALL data (train + val) for the artifact the API actually serves,
-    # then save it as model.joblib (what the FastAPI app loads).
+    # Save the serving artifact FIRST — this is what the API loads, so it must always land.
     final = candidates[best["name"]]
     X_all = df[feature_cols].astype(float)
     y_all = np.log1p(df[target]) if log_tgt else df[target]
     final.fit(X_all, y_all)
-
     Path("models").mkdir(exist_ok=True)
     joblib.dump(final, "models/model.joblib")
     print("saved models/model.joblib")
 
+    # Register the winner using the URI MLflow returned (version-proof).
+    # Wrapped so a registry hiccup never blocks the save above.
+    try:
+        mv = mlflow.register_model(best["model_uri"], REGISTERED_NAME)
+        print(f"registered '{REGISTERED_NAME}' version {mv.version}")
+    except Exception as e:
+        print(f"registry step skipped ({e})")
 
 if __name__ == "__main__":
     main()
