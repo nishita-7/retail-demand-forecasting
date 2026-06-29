@@ -56,3 +56,45 @@ stages:
       hash: md5
       md5: 82a95aebdd7ddf4e5398eaac3fe81c7d
       size: 582
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/features.parquet
+      hash: md5
+      md5: 225bb7876bca002952a78a0b4b749848
+      size: 4494205
+    - path: models/feature_columns.json
+      hash: md5
+      md5: 82a95aebdd7ddf4e5398eaac3fe81c7d
+      size: 582
+    - path: src/train.py
+      hash: md5
+      md5: 62f3ffa2197257660e054d4659c3b508
+      size: 4668
+    params:
+      params.yaml:
+        data:
+          raw_dir: data/raw
+          processed_path: data/processed/clean.parquet
+          drop_closed: true
+          test_weeks: 6
+        features:
+          target: Sales
+          log_target: true
+          cyclical:
+          - month
+          - day_of_week
+          - week_of_year
+        model:
+          type: xgboost
+          n_estimators: 600
+          max_depth: 8
+          learning_rate: 0.05
+          subsample: 0.8
+          colsample_bytree: 0.8
+          random_state: 42
+    outs:
+    - path: models/model.joblib
+      hash: md5
+      md5: 673be7ff25c43abe128ae70bb50a097d
+      size: 10226878
