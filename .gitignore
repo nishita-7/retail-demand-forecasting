@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# DVC cache
+.dvc/cache/
+
+# Model artifacts (if not tracked by DVC)
+models/*.pkl
+models/*.joblib
+models/*.bin
+
+# SQLite database (unless you want it in Git)
+data/rossmann.db
+
+# Data — large files, tracked by DVC not Git
+data/raw/
+data/processed/
+
+# MLflow local store
+mlruns/
+mlflow.db

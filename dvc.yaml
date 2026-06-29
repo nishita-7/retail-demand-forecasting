@@ -1,0 +1,38 @@
+# DVC pipeline. Each stage declares deps (inputs) and outs (outputs).
+# `dvc repro` runs them in order but SKIPS any whose deps haven't changed.
+
+stages:
+  prepare:
+    cmd: python src/data_prep.py
+    deps:
+      - src/data_prep.py
+      - data/raw/train.csv
+      - data/raw/store.csv
+    params:
+      - data
+    outs:
+      - data/processed/clean.parquet
+
+  featurize:
+    cmd: python src/featurize.py
+    deps:
+      - src/featurize.py
+      - data/processed/clean.parquet
+    params:
+      - features
+    outs:
+      - data/processed/features.parquet
+      - models/feature_columns.json
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/processed/features.parquet
+      - models/feature_columns.json
+    params:
+      - model
+      - data
+      - features
+    outs:
+      - models/model.joblib

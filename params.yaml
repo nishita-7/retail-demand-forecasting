@@ -1,0 +1,29 @@
+# Single source of truth for every configurable value in the pipeline.
+# DVC reads this (see dvc.yaml `params:` blocks), so changing a number here
+# and running `dvc repro` re-runs only the stages that depend on it.
+# Why a config file at all: no magic numbers buried in code -> reproducible,
+# and an interviewer can see exactly how the pipeline is parameterised.
+
+data:
+  raw_dir: data/raw                       # where train.csv / store.csv / test.csv live
+  processed_path: data/processed/clean.parquet
+  drop_closed: true                       # remove Open==0 rows (Sales==0 = no demand, not signal)
+  test_weeks: 6                           # final N weeks of train.csv held out as our validation set
+                                          # (mirrors the real "forecast next 6 weeks" task)
+
+features:
+  target: Sales
+  log_target: true                        # train on log1p(Sales), invert with expm1 — tames right skew
+  cyclical: [month, day_of_week, week_of_year]   # encoded as sin/cos so Dec sits next to Jan
+
+model:
+  type: xgboost
+  n_estimators: 600
+  max_depth: 8
+  learning_rate: 0.05
+  subsample: 0.8
+  colsample_bytree: 0.8
+  random_state: 42
+
+evaluate:
+  metrics: [mae, rmse, mape]              # mape is the business-facing one (% error)

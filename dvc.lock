@@ -1,0 +1,58 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/data_prep.py
+    deps:
+    - path: data/raw/store.csv
+      hash: md5
+      md5: 30c9ccb5af66c21f65e7d1da967e6251
+      size: 45010
+    - path: data/raw/train.csv
+      hash: md5
+      md5: d47aedd9e2d580e06a6ef7ce1732e8b6
+      size: 38057952
+    - path: src/data_prep.py
+      hash: md5
+      md5: 045a9691ce3665ca34683e191ed91cd6
+      size: 3099
+    params:
+      params.yaml:
+        data:
+          raw_dir: data/raw
+          processed_path: data/processed/clean.parquet
+          drop_closed: true
+          test_weeks: 6
+    outs:
+    - path: data/processed/clean.parquet
+      hash: md5
+      md5: a0ac915b390c0259a4680a22e7416e68
+      size: 5781095
+  featurize:
+    cmd: python src/featurize.py
+    deps:
+    - path: data/processed/clean.parquet
+      hash: md5
+      md5: a0ac915b390c0259a4680a22e7416e68
+      size: 5781095
+    - path: src/featurize.py
+      hash: md5
+      md5: 8529260c278554192d9d756b418f1aa8
+      size: 4106
+    params:
+      params.yaml:
+        features:
+          target: Sales
+          log_target: true
+          cyclical:
+          - month
+          - day_of_week
+          - week_of_year
+    outs:
+    - path: data/processed/features.parquet
+      hash: md5
+      md5: 225bb7876bca002952a78a0b4b749848
+      size: 4494205
+    - path: models/feature_columns.json
+      hash: md5
+      md5: 82a95aebdd7ddf4e5398eaac3fe81c7d
+      size: 582
