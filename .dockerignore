@@ -1,0 +1,17 @@
+# Keep the image small + the build fast — exclude everything the API doesn't need.
+venv/
+.venv/
+__pycache__/
+*.pyc
+.git/
+.dvc/
+mlruns/
+mlflow.db
+.env
+notebooks/
+predictions.csv
+*.ipynb
+# big raw/processed data (the API only needs data/raw/store.csv, which is NOT excluded)
+data/raw/train.csv
+data/raw/test.csv
+data/processed/

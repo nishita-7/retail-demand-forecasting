@@ -2,9 +2,6 @@
 
 End-to-end machine learning project that forecasts daily store sales — from raw data and statistical analysis through a deployed, interactive forecasting app. Built on the [Rossmann Store Sales](https://www.kaggle.com/c/rossmann-store-sales) dataset (1,115 stores, ~844k trading days).
 
-**🔗 Live demo (dashboard):** https://retail-demand-forecasting-psdjqymkbqjstvepgnpccu.streamlit.app/
-**🐳 API:** FastAPI service, containerized with Docker 
-
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Open_App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://retail-demand-forecasting-psdjqymkbqjstvepgnpccu.streamlit.app/)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
